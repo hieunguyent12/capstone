@@ -1,11 +1,16 @@
-import React from "react";
+import React, { useEffect } from "react";
 import { motion } from "framer-motion";
+
+import Prototype from "./components/Prototype";
+import { GameProvider } from "./context/GameData";
 
 function App() {
   return (
-    <div className="App">
-      <h1 className="text-3xl font-bold underline">Hello world!</h1>
-    </div>
+    <GameProvider>
+      <div className="App">
+        <Prototype />
+      </div>
+    </GameProvider>
   );
 }
 
