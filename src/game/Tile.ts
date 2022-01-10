@@ -1,5 +1,6 @@
 import { ResourceType } from "../types/gameTypes";
 import { TilePosition } from "./../types/gameTypes";
+import Camp from "./Camp";
 import { RESOURCES_TYPES } from "./constants";
 
 type RESOURCES_KEYS = keyof typeof RESOURCES_TYPES;
@@ -10,6 +11,8 @@ class Tile {
   public playerID: string | null = null;
   public isBase = false;
   public position: TilePosition;
+  public army = null;
+  public camp: Camp | null = null;
 
   constructor(resource: ResourceType, position: TilePosition) {
     this.resource = resource;
@@ -22,8 +25,18 @@ class Tile {
     });
   }
 
+  public buildCamp(camp: Camp) {
+    this.camp = camp;
+  }
+
+  public canBuildCamp(playerID: string) {
+    return (
+      this.playerID === playerID && !this.isBase && !this.army && !this.camp
+    );
+  }
+
   public isEmpty() {
-    return !this.playerID && !this.isBase;
+    return !this.playerID && !this.isBase && !this.army && !this.camp;
   }
 }
 

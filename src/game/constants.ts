@@ -8,4 +8,4 @@ export const RESOURCES_TYPES = {
   UNKNOWN: 99999,
 } as const; // "as const" = const assertion (used to ensure that TS infer the most specific type as it can, without it, TS will infer a more general type)
 
-export const PLAYER_COLORS = [];
+export const PLAYER_COLORS = ["#4ade80"];

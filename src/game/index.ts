@@ -1,3 +1,5 @@
+import Camp from "./Camp";
+import { PLAYER_COLORS } from "./constants";
 import MapManager from "./MapManager";
 import Player from "./Player";
 import Tile from "./Tile";
@@ -9,7 +11,6 @@ type ListenerCallback = () => void;
 type PlayerObject = {
   [key: string]: {
     player: Player;
-    color: string;
   };
 };
 
@@ -17,9 +18,11 @@ class Game {
   private mapManager: MapManager;
   private playerID: string;
   private players: PlayerObject = {};
-  private INCOME_AMOUNT = 1;
+
   public canAttack = true;
 
+  private CAMP_LIMIT = 2;
+  private INCOME_AMOUNT = 1;
   public static ATTACK_COOLDOWN_LENGTH = 3000;
   public cooldownTimer = 3;
   public cooldownInterval: any;
@@ -50,8 +53,9 @@ class Game {
     tile.playerID = playerID;
     tile.isBase = true;
 
+    player.setColor(PLAYER_COLORS[0]);
+
     this.players[playerID] = {
-      color: "test",
       player,
     };
   }
@@ -88,8 +92,8 @@ class Game {
     if (this.checkValidAttack(targetTile, playerID)) {
       targetTile.playerID = playerID;
       playerInfo.player.territories.push(targetTile.position);
-      this.canAttack = false;
-      this.attackCooldown();
+      // this.canAttack = false;
+      // this.attackCooldown();
       this.notifyListeners();
       return true;
     } else {
@@ -99,6 +103,7 @@ class Game {
   }
 
   public attackCooldown() {
+    this.cooldownTimer--;
     this.cooldownInterval = setInterval(() => {
       if (this.cooldownTimer === 0) {
         this.cooldownTimer = 3;
@@ -109,6 +114,28 @@ class Game {
 
       this.cooldownTimer--;
     }, 1000);
+  }
+
+  public buildCamp(targetTile: Tile, playerID: string) {
+    const playerInfo = this.getPlayer(playerID);
+
+    if (!targetTile.canBuildCamp(playerID)) {
+      console.log("can't build camp there");
+      return;
+    }
+
+    if (playerInfo.player.camps.length >= this.CAMP_LIMIT) {
+      console.log(`can't build more than ${this.CAMP_LIMIT} camps`);
+      return;
+    }
+
+    const camp = new Camp(playerID, targetTile.position);
+
+    playerInfo.player.buyCamp(camp);
+
+    targetTile.buildCamp(camp);
+
+    this.notifyListeners();
   }
 
   private checkValidAttack(tile: Tile, playerID: string) {
@@ -161,6 +188,8 @@ class Game {
   public getMap() {
     return this.mapManager.map;
   }
+
+  public getTile() {}
 
   public getPlayer(playerID: string) {
     return this.players[playerID];
