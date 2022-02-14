@@ -1,10 +1,11 @@
 import Player from "../game/Player";
 
 interface Props {
-  player: Player;
+  player: Player | undefined;
 }
 
 function PlayerInfo({ player }: Props) {
+  if (!player) return null;
   const { FOOD, STONE, DIAMOND, GOLD, SPECIAL_RESOURCE } = player.resources;
   return (
     <div>

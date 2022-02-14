@@ -5,6 +5,9 @@ import Prototype from "./components/Prototype";
 import { GameProvider } from "./context/GameData";
 
 function App() {
+  useEffect(() => {
+    console.log('hi');
+  });
   return (
     <GameProvider>
       <div className="App">

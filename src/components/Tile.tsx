@@ -7,12 +7,14 @@ import Player from "../game/Player";
 
 interface Props {
   tile: TileClass;
-  getPlayer: (playerID: string) => Player;
+  getPlayer: (playerID: string) => Player | undefined;
   attackTile: (tile: TileClass) => void;
   selectTile: (tile: TileClass) => void;
+  selectArmy: (armyID: string) => void;
+  moveArmy: (destination: TileClass) => void;
 }
 
-function Tile({ tile, attackTile, selectTile, getPlayer }: Props) {
+function Tile({ tile, attackTile, selectArmy, moveArmy, selectTile, getPlayer }: Props) {
   // TODO change the color to that of the player's
   let color = "";
 
@@ -34,56 +36,84 @@ function Tile({ tile, attackTile, selectTile, getPlayer }: Props) {
       break;
   }
 
-  if (tile.playerID && tile.isBase) {
-    // console.log(getPlayer(tile.playerID).color);
-    return (
-      <div
-        className={`tile border-2 relative flex justify-center items-center`}
-        style={{
-          backgroundColor: getPlayer(tile.playerID).color,
-        }}
-        onClick={() => {
-          selectTile(tile);
-        }}
-      >
-        <i className="fas fa-star text-yellow-100 baseStar"></i>
-      </div>
-    );
-  }
+  if (tile.playerID) {
 
-  if (tile.playerID && tile.camp) {
-    return (
-      <div
-        className={`tile border-2 relative flex justify-center items-center`}
-        style={{
-          backgroundColor: getPlayer(tile.playerID).color,
-        }}
-        onClick={() => {
-          selectTile(tile);
-        }}
-      >
-        <i className="fas fa-campground camp text-yellow-600"></i>
-        {/* <i className="fas fa-star text-yellow-100 baseStar"></i> */}
-      </div>
-    );
-  }
+    const playerBgColor = getPlayer(tile.playerID)?.color;
 
-  if (tile.playerID && !tile.isBase) {
-    return (
-      <div
-        className={`tile border-2 relative flex justify-center items-center`}
-        style={{
-          backgroundColor: getPlayer(tile.playerID).color,
-        }}
-        onClick={() => {
-          selectTile(tile);
-        }}
-      >
-        {/* <i className="fas fa-star text-yellow-100 baseStar"></i> */}
-      </div>
-    );
-  }
+    if (tile.isBase) {
+      return (
+        <div
+          className={`tile border-2 relative flex justify-center items-center`}
+          style={{
+            backgroundColor: playerBgColor,
+          }}
+          onClick={() => {
+            selectTile(tile);
+            console.log(tile)
+          }}
+        >
+          <i className="fas fa-star text-yellow-100 baseStar"></i>
+        </div>
+      );
 
+    }
+
+    if (tile.army) {
+      return (
+        <div
+          className={`tile border-2 relative flex justify-center items-center`}
+          style={{
+            backgroundColor: playerBgColor,
+          }}
+          onClick={() => {
+            // Select the army
+            if (tile.army) {
+              selectArmy(tile.army?.armyID);
+            }
+            selectTile(tile);
+          }}
+        >
+          <i className="fas fa-snowman"></i>
+        </div>
+      );
+    }
+
+    if (tile.camp) {
+      return (
+        <div
+          className={`tile border-2 relative flex justify-center items-center`}
+          style={{
+            backgroundColor: playerBgColor,
+          }}
+          onClick={() => {
+            selectTile(tile);
+          }}
+        >
+          <i className="fas fa-campground camp text-yellow-600"></i>
+          {/* <i className="fas fa-star text-yellow-100 baseStar"></i> */}
+        </div>
+      );
+
+    }
+
+    if (!tile.isBase) {
+      return (
+        <div
+          className={`tile border-2 relative flex justify-center items-center`}
+          style={{
+            backgroundColor: playerBgColor,
+          }}
+          onClick={() => {
+            moveArmy(tile);
+            selectTile(tile);
+          }}
+        >
+          {/* <i className="fas fa-star text-yellow-100 baseStar"></i> */}
+        </div>
+      );
+
+    }
+  }
   return (
     <div
       className={`tile border-2 relative`}

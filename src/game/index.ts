@@ -1,23 +1,47 @@
+import Army from "./Army";
 import Camp from "./Camp";
 import { PLAYER_COLORS } from "./constants";
 import MapManager from "./MapManager";
 import Player from "./Player";
 import Tile from "./Tile";
 
+// TODO
+// Train army
+// Deploy army on tiles
+// Army cost
+// Move army using some sort of pathfinding algorithm
+
 // This class has all of the game logics
 // To start a game, call new Game()
 
 type ListenerCallback = () => void;
-type PlayerObject = {
+type PlayerListObject = {
   [key: string]: {
     player: Player;
   };
 };
 
+type BotList = {
+  [key: string]: Player;
+}
+
+type CampListObject = {
+  [key: string]: Camp;
+};
+
+type ArmyListObject = {
+  [key: string]: Army;
+};
+
 class Game {
   private mapManager: MapManager;
   private playerID: string;
-  private players: PlayerObject = {};
+  private players: PlayerListObject = {};
+  private camps: CampListObject = {};
+  private armies: ArmyListObject = {};
+  private selectedArmy: Army | null = null;
+
+  private botPlayers: BotList = {};
 
   public canAttack = true;
 
@@ -40,7 +64,25 @@ class Game {
   private initPlayers(playerID: string) {
     const player = new Player(playerID);
 
+    const bot1 = new Player(undefined, true);
+
     const tile = this.mapManager.map[0][0];
+    const tile2 = this.mapManager.map[this.mapManager.map.length - 1][0];
+
+    bot1.bases.push({
+      x: 0,
+      y: this.mapManager.map.length - 1,
+    })
+
+    bot1.territories.push({
+      x: 0,
+      y: this.mapManager.map.length - 1
+    })
+
+    tile2.playerID = bot1.playerID;
+    tile2.isBase = true;
+    bot1.setColor(PLAYER_COLORS[1]);
+    this.botPlayers[bot1.playerID] = bot1
 
     player.bases.push({
       x: 0,
@@ -89,6 +131,8 @@ class Game {
     // console.log("shitttt");
     const playerInfo = this.getPlayer(playerID);
 
+    if (!playerInfo) return null;
+
     if (this.checkValidAttack(targetTile, playerID)) {
       targetTile.playerID = playerID;
       playerInfo.player.territories.push(targetTile.position);
@@ -119,6 +163,9 @@ class Game {
   public buildCamp(targetTile: Tile, playerID: string) {
     const playerInfo = this.getPlayer(playerID);
 
+
+    if (!playerInfo) return null;
+
     if (!targetTile.canBuildCamp(playerID)) {
       console.log("can't build camp there");
       return;
@@ -135,7 +182,62 @@ class Game {
 
     targetTile.buildCamp(camp);
 
+    this.camps[camp.campID] = camp;
+
     this.notifyListeners();
+  }
+
+  public deployArmy(armyID: string, tile: Tile) {
+
+  }
+  public trainArmy(camp: Camp | null, playerID: string | null) {
+    if (!camp || !playerID) return;
+
+    const player = this.getPlayer(playerID)?.player;
+
+    if (!player) return null;
+    const army = camp.trainArmy();
+    player.addArmyToList(army);
+
+    this.armies[army.armyID] = army;
+  }
+  // select army to deploy
+  public selectArmy(armyID: string | null) {
+    if (armyID === null) {
+      this.selectedArmy = null;
+      return;
+    }
+    const army = this.armies[armyID];
+
+    if (!army) {
+      console.log('the selected army does not exist');
+      return;
+    }
+
+    this.selectedArmy = army;
+  }
+
+  public moveArmy(armyID: string, destination: Tile) {
+    const army = this.armies[armyID];
+
+    if (!army || !army?.tilePosition) {
+      return;
+    }
+
+    if (destination.playerID === army.playerID) {
+      if (!destination.isEmpty && !destination.army) return;
+    }
+
+    const map = this.getMap();
+
+    map[army.tilePosition?.y][army.tilePosition?.x].army = null;
+
+    army.tilePosition = destination.position;
+    destination.army = army;
+  }
+
+  public getSelectedArmy() {
+    return this.selectedArmy;
   }
 
   private checkValidAttack(tile: Tile, playerID: string) {
@@ -185,14 +287,43 @@ class Game {
     return false;
   }
 
+  public getArmiesOfPlayer(playerID: string) {
+    if (!playerID) return [];
+
+    let armies: Army[] = [];
+
+    for (const armyID of Object.keys(this.armies)) {
+      const army = this.armies[armyID];
+
+      if (army.playerID === playerID) {
+        armies.push(army);
+      }
+    }
+
+    return armies;
+  }
+
   public getMap() {
     return this.mapManager.map;
   }
 
-  public getTile() {}
+  public getCamp(campID: string) {
+    return this.camps[campID];
+  }
+
+  public getTile() { }
 
   public getPlayer(playerID: string) {
-    return this.players[playerID];
+    let player = this.players[playerID];
+    if (player) return player;
+    else {
+      player = {
+        player: this.botPlayers[playerID]
+      }
+      if (player) return player;
+
+      return null;
+    }
   }
 
   public listenForEvents(cb: ListenerCallback) {

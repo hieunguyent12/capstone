@@ -1,6 +1,7 @@
 import { ResourceType } from "../types/gameTypes";
 import { TilePosition } from "./../types/gameTypes";
 import Camp from "./Camp";
+import Army from './Army'
 import { RESOURCES_TYPES } from "./constants";
 
 type RESOURCES_KEYS = keyof typeof RESOURCES_TYPES;
@@ -11,7 +12,7 @@ class Tile {
   public playerID: string | null = null;
   public isBase = false;
   public position: TilePosition;
-  public army = null;
+  public army: Army | null = null;
   public camp: Camp | null = null;
 
   constructor(resource: ResourceType, position: TilePosition) {
@@ -23,6 +24,14 @@ class Tile {
         this.resourceKey = type as RESOURCES_KEYS;
       }
     });
+  }
+  // Should this be inside the Army class itself?
+  public deployArmy(army: Army) {
+    this.army = army;
+
+    this.army.tilePosition = this.position;
+
+    army.deploy();
   }
 
   public buildCamp(camp: Camp) {
