@@ -23,7 +23,7 @@ type PlayerListObject = {
 
 type BotList = {
   [key: string]: Player;
-}
+};
 
 type CampListObject = {
   [key: string]: Camp;
@@ -59,30 +59,120 @@ class Game {
     this.INCOME_AMOUNT = INCOME_AMOUNT;
     this.initPlayers(playerID);
     this.generateIncome();
+    this.initBotMovements();
+  }
+
+  private initBotMovements() {
+    setInterval(() => {
+      const botIds = Object.keys(this.botPlayers);
+      const map = this.getMap();
+      const MAP_SIZE = MapManager.MAP_SIZE;
+
+      botIds.forEach((id) => {
+        const bot = this.botPlayers[id];
+        let possibleMoves: Tile[] = [];
+
+        // gather all possible moves
+        bot.territories.forEach(({ x, y }) => {
+          // check all direction of current tile
+          const north = y - 1;
+          const south = y + 1;
+          const east = x + 1;
+          const west = x - 1;
+
+          if (north >= 0 && north < MAP_SIZE) {
+            const northTile = map[north][x];
+
+            possibleMoves.push(northTile);
+          }
+
+          if (south >= 0 && south < MAP_SIZE) {
+            const southTile = map[y + 1][x];
+
+            possibleMoves.push(southTile);
+          }
+
+          if (east >= 0 && east < MAP_SIZE) {
+            const eastTile = map[y][east];
+
+            possibleMoves.push(eastTile);
+          }
+
+          if (west >= 0 && west < MAP_SIZE) {
+            const westTile = map[y][west];
+
+            possibleMoves.push(westTile);
+          }
+        });
+
+        possibleMoves = possibleMoves.filter((tile) =>
+          this.checkValidAttack(tile, bot.playerID)
+        );
+
+        const randomMove =
+          possibleMoves[Math.floor(Math.random() * possibleMoves.length)];
+
+        this.attackTile(randomMove, bot.playerID);
+      });
+    }, 1000);
   }
 
   private initPlayers(playerID: string) {
     const player = new Player(playerID);
 
     const bot1 = new Player(undefined, true);
+    const bot2 = new Player(undefined, true);
+    const bot3 = new Player(undefined, true);
 
     const tile = this.mapManager.map[0][0];
     const tile2 = this.mapManager.map[this.mapManager.map.length - 1][0];
+    const tile3 = this.mapManager.map[0][11];
+    const tile4 = this.mapManager.map[this.mapManager.map.length - 1][11];
 
     bot1.bases.push({
       x: 0,
       y: this.mapManager.map.length - 1,
-    })
+    });
 
     bot1.territories.push({
       x: 0,
-      y: this.mapManager.map.length - 1
-    })
+      y: this.mapManager.map.length - 1,
+    });
+
+    bot2.bases.push({
+      x: 11,
+      y: 0,
+    });
+
+    bot2.territories.push({
+      x: 11,
+      y: 0,
+    });
+
+    bot3.bases.push({
+      x: 11,
+      y: this.mapManager.map.length - 1,
+    });
+
+    bot3.territories.push({
+      x: 11,
+      y: this.mapManager.map.length - 1,
+    });
 
     tile2.playerID = bot1.playerID;
     tile2.isBase = true;
     bot1.setColor(PLAYER_COLORS[1]);
-    this.botPlayers[bot1.playerID] = bot1
+    this.botPlayers[bot1.playerID] = bot1;
+
+    tile3.playerID = bot2.playerID;
+    tile3.isBase = true;
+    bot2.setColor(PLAYER_COLORS[2]);
+    this.botPlayers[bot2.playerID] = bot2;
+
+    tile4.playerID = bot3.playerID;
+    tile4.isBase = true;
+    bot3.setColor(PLAYER_COLORS[3]);
+    this.botPlayers[bot3.playerID] = bot3;
 
     player.bases.push({
       x: 0,
@@ -136,8 +226,12 @@ class Game {
     if (this.checkValidAttack(targetTile, playerID)) {
       targetTile.playerID = playerID;
       playerInfo.player.territories.push(targetTile.position);
-      // this.canAttack = false;
-      // this.attackCooldown();
+
+      if (!playerInfo.player.isBot) {
+        this.canAttack = false;
+        this.attackCooldown();
+      }
+
       this.notifyListeners();
       return true;
     } else {
@@ -163,7 +257,6 @@ class Game {
   public buildCamp(targetTile: Tile, playerID: string) {
     const playerInfo = this.getPlayer(playerID);
 
-
     if (!playerInfo) return null;
 
     if (!targetTile.canBuildCamp(playerID)) {
@@ -187,9 +280,7 @@ class Game {
     this.notifyListeners();
   }
 
-  public deployArmy(armyID: string, tile: Tile) {
-
-  }
+  public deployArmy(armyID: string, tile: Tile) {}
   public trainArmy(camp: Camp | null, playerID: string | null) {
     if (!camp || !playerID) return;
 
@@ -210,7 +301,7 @@ class Game {
     const army = this.armies[armyID];
 
     if (!army) {
-      console.log('the selected army does not exist');
+      console.log("the selected army does not exist");
       return;
     }
 
@@ -311,16 +402,16 @@ class Game {
     return this.camps[campID];
   }
 
-  public getTile() { }
+  public getTile() {}
 
   public getPlayer(playerID: string) {
     let player = this.players[playerID];
     if (player) return player;
     else {
       player = {
-        player: this.botPlayers[playerID]
-      }
-      if (player) return player;
+        player: this.botPlayers[playerID],
+      };
+      if (player && player.player) return player;
 
       return null;
     }

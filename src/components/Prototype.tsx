@@ -21,7 +21,36 @@ export default function Prototype() {
   const [tileInfo, setTileInfo] = useState<_Tile | null>(null);
   const [selectedArmy, setSelectedArmy] = useState<Army | null>(null);
   const [selectedDeployingArmy, setDeployArmy] = useState<Army | null>(null);
+  const progressbarRef = useRef<any>();
+  const [startedTimer, setStartedTimer] = useState(false);
   const gameData = useGame();
+
+  // useEffect(() => {
+  //   if (gameData?.game.canAttack) {
+  //     return;
+  //   }
+  //   // setStartedTimer(true);
+  //   let width = 1;
+  //   const id = setInterval(frame, 3 * 10);
+
+  //   function frame() {
+  //     if (width >= 100) {
+  //       clearInterval(id);
+  //       // setStartedTimer(false);
+  //     } else {
+  //       width++;
+
+  //       if (progressbarRef && progressbarRef.current) {
+  //         progressbarRef.current.style.width = width + "%";
+  //       }
+  //     }
+  //   }
+
+  //   // return () => {
+  //   //   clearInterval(id);
+  //   // };
+  //   // @ts-ignore
+  // }, [gameData.game.cooldownTimer, startedTimer, gameData.game.canAttack]);
 
   if (!gameData) {
     return <p>Loading game...</p>;
@@ -36,6 +65,7 @@ export default function Prototype() {
   };
 
   const selectTile = (tile: _Tile) => {
+    console.log(tile);
     setTileInfo(tile);
   };
 
@@ -46,22 +76,21 @@ export default function Prototype() {
 
   const selectDeployArmy = (armyID: string | null) => {
     game.selectArmy(armyID);
-    setDeployArmy(game.getSelectedArmy())
-  }
+    setDeployArmy(game.getSelectedArmy());
+  };
 
   const moveArmy = (destination: _Tile) => {
     if (selectedArmy) {
-      game.moveArmy(selectedArmy.armyID, destination)
+      game.moveArmy(selectedArmy.armyID, destination);
       setSelectedArmy(null);
     }
-  }
+  };
 
   const buildCamp = (tile: _Tile) => {
     game.buildCamp(tile, playerID);
   };
 
   const getPlayer = (playerID: string) => {
-
     return game.getPlayer(playerID)?.player;
   };
 
@@ -76,46 +105,68 @@ export default function Prototype() {
   const armies = game.getArmiesOfPlayer(playerID);
 
   return (
-    <div>
-      {/* <ExampleComponent /> */}
+    <div className="w-screen h-screen flex justify-center items-center">
       <div
-        className="map"
         style={{
-          width: `${TILE_SIZE * MapManager.MAP_SIZE}px`,
-          height: `${TILE_SIZE * MapManager.MAP_SIZE}px`,
+          width: "300px",
+          height: "600px",
         }}
       >
-        {gameMap.map((row, rowIndex) => {
-          return row.map((tile, x) => {
-            const key = x + "" + rowIndex;
-            return (
-              <Tile
-                key={key}
-                tile={tile}
-                attackTile={attackTile}
-                selectTile={selectTile}
-                getPlayer={getPlayer}
-                selectArmy={selectArmy}
-                moveArmy={moveArmy}
-              />
-            );
-          });
-        })}
+        <p className="font-bold">Cooldown: {game.cooldownTimer}s</p>
+        <div>
+          {/* <p>SELECTED ARMY</p> */}
+          <p>{selectedArmy?.armyID}</p>
+        </div>
+        <TileInfo
+          selectArmy={selectDeployArmy}
+          selectedArmy={selectedDeployingArmy}
+          tileInfo={tileInfo}
+          buildCamp={buildCamp}
+          trainArmies={trainArmies}
+          getPlayer={(id: string) => game.getPlayer(id)}
+        />
+        <Armies armies={armies} selectArmy={selectDeployArmy} />
       </div>
-      <p>Cooldown: {game.cooldownTimer}s</p>
-      <PlayerInfo player={game.getPlayer(playerID)?.player} />
       <div>
-        <p>SELECTED ARMY</p>
-        <p>{selectedArmy?.armyID}</p>
+        <div className="flex">
+          <PlayerInfo player={game.getPlayer(playerID)?.player} />
+
+          {/* <div className="grow">
+            <div
+              ref={progressbarRef}
+              style={{
+                width: "1%",
+                height: "32px",
+                backgroundColor: "green",
+              }}
+            ></div>
+          </div> */}
+        </div>
+        <div
+          className="map"
+          style={{
+            width: `${TILE_SIZE * MapManager.MAP_SIZE}px`,
+            height: `${TILE_SIZE * MapManager.MAP_SIZE}px`,
+          }}
+        >
+          {gameMap.map((row, rowIndex) => {
+            return row.map((tile, x) => {
+              const key = x + "" + rowIndex;
+              return (
+                <Tile
+                  key={key}
+                  tile={tile}
+                  attackTile={attackTile}
+                  selectTile={selectTile}
+                  getPlayer={getPlayer}
+                  selectArmy={selectArmy}
+                  moveArmy={moveArmy}
+                />
+              );
+            });
+          })}
+        </div>
       </div>
-      <TileInfo
-        selectArmy={selectDeployArmy}
-        selectedArmy={selectedDeployingArmy}
-        tileInfo={tileInfo}
-        buildCamp={buildCamp}
-        trainArmies={trainArmies}
-      />
-      <Armies armies={armies} selectArmy={selectDeployArmy} />
     </div>
   );
 }
