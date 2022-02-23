@@ -14,7 +14,14 @@ interface Props {
   moveArmy: (destination: TileClass) => void;
 }
 
-function Tile({ tile, attackTile, selectArmy, moveArmy, selectTile, getPlayer }: Props) {
+function Tile({
+  tile,
+  attackTile,
+  selectArmy,
+  moveArmy,
+  selectTile,
+  getPlayer,
+}: Props) {
   // TODO change the color to that of the player's
   let color = "";
 
@@ -37,8 +44,8 @@ function Tile({ tile, attackTile, selectArmy, moveArmy, selectTile, getPlayer }:
   }
 
   if (tile.playerID) {
-
-    const playerBgColor = getPlayer(tile.playerID)?.color;
+    const player = getPlayer(tile.playerID);
+    const playerBgColor = player?.color;
 
     if (tile.isBase) {
       return (
@@ -49,13 +56,17 @@ function Tile({ tile, attackTile, selectArmy, moveArmy, selectTile, getPlayer }:
           }}
           onClick={() => {
             selectTile(tile);
-            console.log(tile)
+
+            console.log(tile);
+
+            if (player && player.isBot) {
+              attackTile(tile);
+            }
           }}
         >
           <i className="fas fa-star text-yellow-100 baseStar"></i>
         </div>
       );
-
     }
 
     if (tile.army) {
@@ -71,6 +82,10 @@ function Tile({ tile, attackTile, selectArmy, moveArmy, selectTile, getPlayer }:
               selectArmy(tile.army?.armyID);
             }
             selectTile(tile);
+
+            if (player && player.isBot) {
+              attackTile(tile);
+            }
           }}
         >
           <i className="fas fa-snowman"></i>
@@ -87,13 +102,15 @@ function Tile({ tile, attackTile, selectArmy, moveArmy, selectTile, getPlayer }:
           }}
           onClick={() => {
             selectTile(tile);
+            if (player && player.isBot) {
+              attackTile(tile);
+            }
           }}
         >
           <i className="fas fa-campground camp text-yellow-600"></i>
           {/* <i className="fas fa-star text-yellow-100 baseStar"></i> */}
         </div>
       );
-
     }
 
     if (!tile.isBase) {
@@ -106,12 +123,14 @@ function Tile({ tile, attackTile, selectArmy, moveArmy, selectTile, getPlayer }:
           onClick={() => {
             moveArmy(tile);
             selectTile(tile);
+            if (player && player.isBot) {
+              attackTile(tile);
+            }
           }}
         >
           {/* <i className="fas fa-star text-yellow-100 baseStar"></i> */}
         </div>
       );
-
     }
   }
   return (

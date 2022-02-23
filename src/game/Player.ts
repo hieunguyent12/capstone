@@ -22,7 +22,7 @@ class Player {
     this.playerID = playerID ? playerID : nanoid();
     this.resources = Object.keys(RESOURCES_TYPES).reduce(
       (prev: any, curr: string) => {
-        prev[curr] = 0;
+        prev[curr] = 50;
 
         return prev;
       },

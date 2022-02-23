@@ -25,6 +25,10 @@ export default function Prototype() {
   const [startedTimer, setStartedTimer] = useState(false);
   const gameData = useGame();
 
+  useEffect(() => {
+    console.log("%c DEEZ NUTS lol", "color:blue; font-size:50px");
+  }, []);
+
   // useEffect(() => {
   //   if (gameData?.game.canAttack) {
   //     return;
@@ -65,7 +69,6 @@ export default function Prototype() {
   };
 
   const selectTile = (tile: _Tile) => {
-    console.log(tile);
     setTileInfo(tile);
   };
 
@@ -106,30 +109,10 @@ export default function Prototype() {
 
   return (
     <div className="w-screen h-screen flex justify-center items-center">
-      <div
-        style={{
-          width: "300px",
-          height: "600px",
-        }}
-      >
-        <p className="font-bold">Cooldown: {game.cooldownTimer}s</p>
-        <div>
-          {/* <p>SELECTED ARMY</p> */}
-          <p>{selectedArmy?.armyID}</p>
-        </div>
-        <TileInfo
-          selectArmy={selectDeployArmy}
-          selectedArmy={selectedDeployingArmy}
-          tileInfo={tileInfo}
-          buildCamp={buildCamp}
-          trainArmies={trainArmies}
-          getPlayer={(id: string) => game.getPlayer(id)}
-        />
-        <Armies armies={armies} selectArmy={selectDeployArmy} />
-      </div>
       <div>
         <div className="flex">
           <PlayerInfo player={game.getPlayer(playerID)?.player} />
+          <p className="font-bold">Cooldown: {game.cooldownTimer}s</p>
 
           {/* <div className="grow">
             <div

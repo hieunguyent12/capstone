@@ -224,13 +224,38 @@ class Game {
     if (!playerInfo) return null;
 
     if (this.checkValidAttack(targetTile, playerID)) {
-      targetTile.playerID = playerID;
-      playerInfo.player.territories.push(targetTile.position);
-
       if (!playerInfo.player.isBot) {
         this.canAttack = false;
         this.attackCooldown();
+
+        // @ts-ignore
+
+        if (
+          targetTile.isBase &&
+          // @ts-ignore
+
+          this.getPlayer(targetTile.playerID)?.player.isBot
+        ) {
+          // @ts-ignore
+
+          const temp = this.getPlayer(targetTile.playerID)?.player.territories;
+          console.log(temp);
+
+          temp?.forEach(({ x, y }) => {
+            const tile = this.getMap()[y][x];
+            tile.playerID = playerInfo.player.playerID;
+          });
+
+          // @ts-ignore
+          delete this.botPlayers[targetTile.playerID];
+        }
+
+        // @ts-ignore;
+        playerInfo.player.resources[targetTile.resourceKey] -= 10;
       }
+
+      targetTile.playerID = playerID;
+      playerInfo.player.territories.push(targetTile.position);
 
       this.notifyListeners();
       return true;
