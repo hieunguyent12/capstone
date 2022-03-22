@@ -47,8 +47,8 @@ class Game {
 
   private CAMP_LIMIT = 2;
   private INCOME_AMOUNT = 1;
-  public static ATTACK_COOLDOWN_LENGTH = 3000;
-  public cooldownTimer = 3;
+  public static ATTACK_COOLDOWN_LENGTH = 2000;
+  public cooldownTimer = 2;
   public cooldownInterval: any;
 
   private eventListeners: ListenerCallback[] = [];
